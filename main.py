@@ -60,7 +60,6 @@ async def download_file_bytes(url_or_path: str) -> bytes:
                 return resp.content
     return None
 
-@filter.register
 class SaberTranslatorPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -89,11 +88,7 @@ class SaberTranslatorPlugin(Star):
     @filter.command("trans_comic")
     @filter.llm_tool(name="translate_comic")
     async def translate_comic(self, event: AstrMessageEvent) -> MessageEventResult:
-        """翻译用户提供的漫画图片或打包的多图漫画压缩包 (ZIP)。
-
-        Args:
-            event(AstrMessageEvent): 消息事件
-        """
+        """翻译用户提供的漫画图片或打包的多图漫画压缩包 (ZIP)。"""
         session_id = event.message_obj.session_id
         target_component = None
         asset_type = None
