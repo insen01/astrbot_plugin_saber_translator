@@ -252,6 +252,26 @@ class SaberTranslatorPlugin(Star):
         async with httpx.AsyncClient(timeout=120.0) as client:
             headers = {"Content-Type": "application/json"}
 
+            # 0. 尝试拉取本地的配置以进行参数缺省回退
+            local_provider, local_model, local_key, local_base_url = None, None, None, None
+            try:
+                res_settings = await client.get(f"{saber_url}/api/get_settings")
+                if res_settings.status_code == 200:
+                    settings_data = res_settings.json().get("settings", {})
+                    trans_settings = settings_data.get("translation", {})
+                    local_provider = trans_settings.get("provider")
+                    local_model = trans_settings.get("modelName")
+                    local_key = trans_settings.get("apiKey")
+                    local_base_url = trans_settings.get("customBaseUrl")
+                    logger.info(f"Saber-Translator: 已自动同步本地翻译引擎配置，服务商: {local_provider}")
+            except Exception as e:
+                logger.warning(f"Saber-Translator: 自动获取本地设置失败 (将使用插件手动配置): {e}")
+
+            final_provider = config.get("model_provider") or local_provider or "siliconflow"
+            final_model = config.get("model_name") or local_model or "deepseek-ai/DeepSeek-V3"
+            final_key = config.get("api_key") or local_key or ""
+            final_base_url = config.get("custom_base_url") or local_base_url or ""
+
             # Step 1: Detect 气泡检测
             detect_payload = {
                 "image": img_b64,
@@ -289,10 +309,10 @@ class SaberTranslatorPlugin(Star):
                 "original_texts": original_texts,
                 "source_language": config.get("source_language", "japanese"),
                 "target_language": config.get("target_language", "zh"),
-                "model_provider": config.get("model_provider", "siliconflow"),
-                "model_name": config.get("model_name", "deepseek-ai/DeepSeek-V3"),
-                "api_key": config.get("api_key", ""),
-                "custom_base_url": config.get("custom_base_url", "")
+                "model_provider": final_provider,
+                "model_name": final_model,
+                "api_key": final_key,
+                "custom_base_url": final_base_url
             }
             res_trans = await client.post(f"{saber_url}/api/parallel/translate", json=translate_payload, headers=headers)
             

@@ -8,27 +8,27 @@
   "model_provider": {
     "description": "翻译模型服务商",
     "type": "string",
-    "default": "siliconflow",
-    "options": ["siliconflow", "gemini", "openai", "ollama", "sakura"],
-    "hint": "选择本地翻译项目使用的翻译大模型提供商（与 Saber-Translator 保持一致）"
+    "default": "",
+    "options": ["", "siliconflow", "gemini", "openai", "ollama", "sakura"],
+    "hint": "选择本地翻译项目使用的大模型提供商。留空则自动同步并使用本地网页上已配好的设置。"
   },
   "model_name": {
-    "description": "大语言模型名称",
+    "description": "大语言模型名称 (覆盖配置)",
     "type": "string",
-    "default": "deepseek-ai/DeepSeek-V3",
-    "hint": "翻译所使用大模型的完整模型名称"
+    "default": "",
+    "hint": "若留空，自动拉取并使用本地网页上已设定的模型名称；填入值则会覆盖本地的默认模型配置。"
   },
   "api_key": {
-    "description": "翻译模型 API 密钥",
+    "description": "翻译模型 API 密钥 (覆盖配置)",
     "type": "string",
     "default": "",
-    "hint": "所选服务商的 API 密钥。如果选用自部署本地 ollama 或 sakura 且不需要 Key，可为空"
+    "hint": "若留空，自动拉取并使用本地网页上的 API Key；填入值则会覆盖本地配置。"
   },
   "custom_base_url": {
-    "description": "自定义大模型服务基准 URL",
+    "description": "自定义大模型服务基准 URL (覆盖配置)",
     "type": "string",
     "default": "",
-    "hint": "如果您使用自定义代理或第三方大模型中继，请在此填入 Base URL。否则留空即可"
+    "hint": "若留空，自动拉取并使用本地网页上的 Base URL。"
   },
   "detector_type": {
     "description": "文本气泡检测器",
