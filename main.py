@@ -85,6 +85,49 @@ class SaberTranslatorPlugin(Star):
                 logger.debug(f"Saber-Translator: 缓存了会话 {session_id} 的 zip 压缩包: {file_val}")
                 return
 
+    @filter.command("trans_comic_test")
+    async def translate_comic_test(self, event: AstrMessageEvent):
+        """测试远程 Astrbot 到本地 Saber-Translator 翻译引擎的连接及健康状态。"""
+        config = self.context.get_config() or {}
+        saber_url = config.get("saber_base_url", "http://127.0.0.1:5000").rstrip("/")
+        yield event.plain_result(f"📡 正在测试与本地翻译引擎的连接，目标地址: {saber_url} ...")
+        diag = await self._test_connection(saber_url)
+        yield event.plain_result(diag["msg"])
+
+    async def _test_connection(self, saber_url: str) -> dict:
+        """测试远程服务器到本地 Saber-Translator 的连接状态，并返回诊断信息"""
+        try:
+            async with httpx.AsyncClient(timeout=6.0) as client:
+                resp = await client.get(f"{saber_url}/api/get_settings")
+                if resp.status_code == 200:
+                    settings_data = resp.json().get("settings", {})
+                    trans_settings = settings_data.get("translation", {})
+                    provider = trans_settings.get("provider", "未设置")
+                    return {
+                        "success": True, 
+                        "msg": f"✅ 连接成功！本地 Saber-Translator 响应正常。\n- 本地已配置大模型服务商: {provider}"
+                    }
+                else:
+                    return {
+                        "success": False, 
+                        "msg": f"❌ 连接异常！Saber-Translator 返回了错误的状态码: HTTP {resp.status_code}\n(这通常表示接口存在但有内部异常，请检查本地项目日志。)"
+                    }
+        except httpx.ConnectTimeout:
+            return {
+                "success": False, 
+                "msg": f"❌ 连接超时！远程服务器无法连接至本地 IP: {saber_url}\n\n💡 排查建议：\n1. 确认本地电脑和远程服务器的 Tailscale 均处于在线状态。\n2. 确认您填写的 Tailscale IP 端口是否正确。\n3. 极有可能：Windows Defender 防火墙拦截了 5000 端口。请在 Windows 控制面板 -> 系统和安全 -> Windows Defender 防火墙 -> 高级设置中，新建【入站规则】，放行端口 5000 的 TCP 连接。"
+            }
+        except (httpx.ConnectError, httpx.NetworkError) as ce:
+            return {
+                "success": False,
+                "msg": f"❌ 连接被拒绝或网络不可达！目标地址: {saber_url}\n\n💡 排查建议：\n1. 确认本地电脑上 Saber-Translator 项目已经正常启动并正在运行。\n2. 检查本地命令行窗口中 Flask 服务是否仍然存活在 5000 端口。\n3. 详细报错: {str(ce)}"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "msg": f"❌ 网络请求发生未知错误: {str(e)}"
+            }
+
     @filter.command("trans_comic")
     async def translate_comic_cmd(self, event: AstrMessageEvent):
         """通过指令触发漫画翻译"""
@@ -128,6 +171,12 @@ class SaberTranslatorPlugin(Star):
         config = self.context.get_config() or {}
         saber_url = config.get("saber_base_url", "http://127.0.0.1:5000").rstrip("/")
         
+        # 3.5 前置连接可用性验证
+        diag = await self._test_connection(saber_url)
+        if not diag["success"]:
+            yield event.plain_result(f"⚠️ 无法启动漫画翻译管线，因为到本地翻译项目的网络连接失败！\n\n{diag['msg']}")
+            return
+
         # 4. 执行翻译流水线
         if asset_type == "image":
             yield event.plain_result("⏳ 正在获取图片并启动漫画翻译管线，请稍候...")
