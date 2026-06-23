@@ -61,11 +61,20 @@ async def download_file_bytes(url_or_path: str) -> bytes:
     return None
 
 class SaberTranslatorPlugin(Star):
-    def __init__(self, context: Context):
+    def __init__(self, context: Context, config: dict = None):
         super().__init__(context)
+        self.config = config or {}
         # 用于保存各个 Session 最新发送的图片或 zip 压缩包，做交互容错缓存
         # 格式为: {session_id: ("image"|"zip", component)}
         self.last_assets = {}
+
+    def _get_saber_url(self) -> str:
+        saber_url = self.config.get("saber_base_url", "http://127.0.0.1:5000").strip().rstrip("/")
+        if not saber_url:
+            saber_url = "http://127.0.0.1:5000"
+        if not saber_url.startswith(("http://", "https://")):
+            saber_url = "http://" + saber_url
+        return saber_url
 
     @filter.event_message_type(filter.EventMessageType.ALL)
     async def on_message_cache(self, event: AstrMessageEvent):
@@ -88,8 +97,7 @@ class SaberTranslatorPlugin(Star):
     @filter.command("trans_comic_test")
     async def translate_comic_test(self, event: AstrMessageEvent):
         """测试远程 Astrbot 到本地 Saber-Translator 翻译引擎的连接及健康状态。"""
-        config = self.context.get_config() or {}
-        saber_url = config.get("saber_base_url", "http://127.0.0.1:5000").rstrip("/")
+        saber_url = self._get_saber_url()
         yield event.plain_result(f"📡 正在测试与本地翻译引擎的连接，目标地址: {saber_url} ...")
         diag = await self._test_connection(saber_url)
         yield event.plain_result(diag["msg"])
@@ -168,8 +176,8 @@ class SaberTranslatorPlugin(Star):
             return
 
         # 3. 读取插件配置
-        config = self.context.get_config() or {}
-        saber_url = config.get("saber_base_url", "http://127.0.0.1:5000").rstrip("/")
+        config = self.config
+        saber_url = self._get_saber_url()
         
         # 3.5 前置连接可用性验证
         diag = await self._test_connection(saber_url)
