@@ -86,9 +86,18 @@ class SaberTranslatorPlugin(Star):
                 return
 
     @filter.command("trans_comic")
+    async def translate_comic_cmd(self, event: AstrMessageEvent):
+        """通过指令触发漫画翻译"""
+        async for result in self._do_translate_comic(event):
+            yield result
+
     @filter.llm_tool(name="translate_comic")
-    async def translate_comic(self, event: AstrMessageEvent) -> MessageEventResult:
+    async def translate_comic_tool(self, event: AstrMessageEvent) -> MessageEventResult:
         """翻译用户提供的漫画图片或打包的多图漫画压缩包 (ZIP)。"""
+        async for result in self._do_translate_comic(event):
+            yield result
+
+    async def _do_translate_comic(self, event: AstrMessageEvent):
         session_id = event.message_obj.session_id
         target_component = None
         asset_type = None
