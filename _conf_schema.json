@@ -1,0 +1,53 @@
+{
+  "saber_base_url": {
+    "description": "Saber-Translator 本地局域网或 Tailscale 地址",
+    "type": "string",
+    "default": "http://127.0.0.1:5000",
+    "hint": "如果远程 Astrbot 服务器是通过 Tailscale 连接到这台电脑的，请在此填入本地电脑在 Tailscale 网络中的 IP 和端口。例如 http://100.115.8.9:5000"
+  },
+  "model_provider": {
+    "description": "翻译模型服务商",
+    "type": "string",
+    "default": "siliconflow",
+    "options": ["siliconflow", "gemini", "openai", "ollama", "sakura"],
+    "hint": "选择本地翻译项目使用的翻译大模型提供商（与 Saber-Translator 保持一致）"
+  },
+  "model_name": {
+    "description": "大语言模型名称",
+    "type": "string",
+    "default": "deepseek-ai/DeepSeek-V3",
+    "hint": "翻译所使用大模型的完整模型名称"
+  },
+  "api_key": {
+    "description": "翻译模型 API 密钥",
+    "type": "string",
+    "default": "",
+    "hint": "所选服务商的 API 密钥。如果选用自部署本地 ollama 或 sakura 且不需要 Key，可为空"
+  },
+  "custom_base_url": {
+    "description": "自定义大模型服务基准 URL",
+    "type": "string",
+    "default": "",
+    "hint": "如果您使用自定义代理或第三方大模型中继，请在此填入 Base URL。否则留空即可"
+  },
+  "detector_type": {
+    "description": "文本气泡检测器",
+    "type": "string",
+    "default": "default",
+    "options": ["default", "ctd", "yolo", "saber_yolo"],
+    "hint": "用来识别漫画文本气泡的检测器算法，默认 DBNet 性能最均衡"
+  },
+  "source_language": {
+    "description": "源语言 (漫画原文)",
+    "type": "string",
+    "default": "japanese",
+    "options": ["japanese", "english", "korean"],
+    "hint": "漫画原图的文字语言类型"
+  },
+  "target_language": {
+    "description": "目标语言 (翻译译文)",
+    "type": "string",
+    "default": "zh",
+    "hint": "通常为 zh (中文简体) 或 zht (繁体)"
+  }
+}

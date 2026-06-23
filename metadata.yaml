@@ -1,0 +1,6 @@
+name: astrbot_plugin_saber_translator
+display_name: Saber-Translator 漫画翻译器
+desc: 智能漫画翻译插件。使用此插件可以通过远程服务器的 Astrbot 连接到本地电脑的 Saber-Translator 漫画翻译项目进行图片/压缩包的自动漫画翻译。
+version: 1.0.0
+author: Antigravity
+astrbot_version: ">=4.0.0"
